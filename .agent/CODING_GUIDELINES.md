@@ -75,8 +75,11 @@ just in a doc. Known simplifications in this project:
 
 ## Git and merging
 
-- Work on short-lived branches. Every change reaches `main` through a pull
-  request, even solo.
+- **Never commit to `main` directly. Every change — code, docs, config, a
+  one-line typo fix — goes on a branch and merges through a pull request, even
+  solo.** `main` is push-protected by the repo ruleset (`docs/repo-setup.md`);
+  a direct push is rejected. Branch names: `feat/…`, `fix/…`, `chore/…`,
+  `docs/…`.
 - **Squash merge only.** Merge commits and rebase merging are disabled in the
   repo settings; the ruleset requires linear history. One commit per PR on
   `main`.

@@ -2,10 +2,13 @@
 
 Newest first. Each entry: the decision, why, and what was rejected.
 
-## 2026-09-07 — Squash-only merges, PR description is the record
+## 2026-09-07 — Branch + PR for everything; squash-only merges
 
-`main` gets one commit per PR via squash merge; merge commits and rebase merging
-are turned off and the ruleset requires linear history. The squash message is
+No commits land on `main` directly — every change, however small, goes on a
+branch and merges via a pull request. The repo ruleset push-protects `main` (a
+`pull_request` rule), so a direct push is rejected, not just discouraged. `main`
+gets one commit per PR via squash merge; merge commits and rebase merging are
+turned off and the ruleset requires linear history. The squash message is
 configured to come from the PR title + body, so the PR description is where the
 "what and why" lives — enforced by a PR template and a CI check that rejects an
 empty/template-only body. Rejected: allowing merge commits (noisy first-parent

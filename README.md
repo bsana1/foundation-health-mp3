@@ -86,14 +86,19 @@ variables through the platform instead; the repo ships no per-environment files.
 
 ```
 src/
-  config.ts            env-driven configuration
-  index.ts             process entry point (listen, signals)
+  config.ts               env-driven configuration
+  index.ts                process entry point (listen, signals)
   http/
-    app.ts             buildApp() — Fastify instance, testable
+    app.ts                buildApp() — Fastify instance, testable
     routes/
-      file-upload.ts   POST /file-upload  (stub until the parser lands)
-  mp3/                 frame parser — to be added (see docs/TASKS.md)
+      fileUpload.ts        POST /file-upload  (stub until the parser is wired in)
+  mp3/
+    frameHeader.ts         parse + validate one 4-byte frame header
+    frameHeaderConsts.ts   lookup tables and magic numbers
+    ...                     more of the parser lands over Milestone 1
 test/
-  fixtures/            the provided sample MP3
-  http/                endpoint smoke tests
+  fixtures/               the provided sample MP3
+  helpers/                synthetic MP3 builders for tests
+  http/                   endpoint smoke tests (one route per file)
+  mp3/                    parser unit tests
 ```

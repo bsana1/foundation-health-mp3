@@ -21,10 +21,19 @@ core logic honest.
 
 ## Module layout
 
+- **File names are camelCase — no dashes or underscores.** `frameHeader.ts`,
+  `frameHeaderConsts.ts`, `syntheticMp3.ts`, `fileUpload.ts`. Config and tooling
+  files keep the names their ecosystem mandates (`eslint.config.js`,
+  `vitest.config.ts`, `.github/pull_request_template.md`); binary test fixtures
+  keep descriptive names.
 - One primary export per file. A function, a class, or a small cluster of
   types/constants that only make sense together — but not several unrelated
   functions dumped into a `utils.ts`. The file name is the thing it exports
-  (`frame-header.ts` exports the header parser).
+  (`frameHeader.ts` exports the header parser).
+- **Constants live in a dedicated `<module>Consts.ts` file**, not inlined in the
+  module that uses them: lookup tables, magic numbers, byte offsets, bitmasks.
+  Keeps the logic readable and lets a test assert against a table directly.
+  `frameHeader.ts` reads from `frameHeaderConsts.ts`.
 - Prefer plain functions. A class is used only when there is real per-instance
   state to carry — the streaming frame counter is the example.
 - Helpers and utilities are ordinary exported units in their own files, each
@@ -32,7 +41,8 @@ core logic honest.
   closure buried inside the function that uses it, if it has any logic worth
   checking. If a helper is worth writing, it is worth a direct unit test.
 - `index.ts` in a directory is only a re-export barrel for that directory's
-  public surface; it holds no logic.
+  public surface; it holds no logic. A module never re-exports another module's
+  constants — import them from `<module>Consts.ts` directly.
 
 ## Dependencies
 

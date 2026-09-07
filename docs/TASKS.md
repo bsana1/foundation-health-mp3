@@ -23,11 +23,11 @@ hardening, then release readiness.
 ## Milestone 1 — Frame counting (next)
 
 - [ ] `src/mp3/id3.ts` — measure and skip a leading ID3v2 tag (synchsafe size)
-- [ ] `src/mp3/frame-header.ts` — parse + validate the 4-byte header; bitrate /
+- [ ] `src/mp3/frameHeader.ts` — parse + validate the 4-byte header; bitrate /
       sample-rate tables; frame-length formula; typed parse result
-- [ ] `src/mp3/frame-counter.ts` — streaming state machine: `update(chunk)` /
+- [ ] `src/mp3/frameCounter.ts` — streaming state machine: `update(chunk)` /
       `finish()`, carry-over buffer, O(1) memory
-- [ ] `src/mp3/vbr-header.ts` — detect the Xing/Info/VBRI header frame and
+- [ ] `src/mp3/vbrHeader.ts` — detect the Xing/Info/VBRI header frame and
       exclude it from the count (this is what makes our number match `mediainfo`)
 - [ ] `src/mp3/index.ts` — `countMp3Frames(source)` public entry point
 - [ ] Typed error hierarchy: `NotAnMp3Error`, `UnsupportedMpegFormatError`,

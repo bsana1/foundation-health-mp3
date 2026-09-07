@@ -21,12 +21,12 @@ Two layers, kept deliberately separate:
 HTTP layer (src/http/)          Core (src/mp3/, not yet built)
 --------------------            ------------------------------
 app.ts      build the Fastify   index.ts        countMp3Frames(source)
-            instance, register  frame-counter   streaming state machine
-            @fastify/multipart  frame-header    parse one 4-byte header
+            instance, register  frameCounter    streaming state machine
+            @fastify/multipart  frameHeader     parse one 4-byte header
 routes/     accept the upload,  id3             measure a leading ID3v2 tag
-file-upload stream it into the  vbr-header      spot the Xing/Info metadata frame
+fileUpload  stream it into the  vbrHeader       spot the Xing/Info metadata frame
             core, shape the     errors          typed error hierarchy
-            response
+            response            frameHeaderConsts  tables and magic numbers
 ```
 
 `src/config.ts` reads configuration from the environment once at startup.

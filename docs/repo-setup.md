@@ -60,7 +60,8 @@ JSON
 
 What this enforces on `main`:
 
-- every change goes through a pull request; direct pushes are blocked
+- **direct pushes are blocked** — the `pull_request` rule means every change to
+  `main`, without exception, arrives through a merged PR from a branch
 - linear history — combined with squash-only merging, one commit per PR
 - no force-pushes, no branch deletion
 - CI must pass and the branch must be up to date: `check` (from `ci.yml`,

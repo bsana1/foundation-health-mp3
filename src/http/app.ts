@@ -8,7 +8,7 @@ import multipart from '@fastify/multipart';
 import Fastify, { type FastifyInstance } from 'fastify';
 
 import type { AppConfig } from '../config.js';
-import { registerFileUploadRoute } from './routes/file-upload.js';
+import { registerFileUploadRoute } from './routes/fileUpload.js';
 
 export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
   const app = Fastify({

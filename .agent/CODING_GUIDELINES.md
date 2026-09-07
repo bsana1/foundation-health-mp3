@@ -21,10 +21,19 @@ core logic honest.
 
 ## Module layout
 
+- **File names are camelCase — no dashes or underscores.** `frameHeader.ts`,
+  `frameHeaderConsts.ts`, `syntheticMp3.ts`, `fileUpload.ts`. Config and tooling
+  files keep the names their ecosystem mandates (`eslint.config.js`,
+  `vitest.config.ts`, `.github/pull_request_template.md`); binary test fixtures
+  keep descriptive names.
 - One primary export per file. A function, a class, or a small cluster of
   types/constants that only make sense together — but not several unrelated
   functions dumped into a `utils.ts`. The file name is the thing it exports
-  (`frame-header.ts` exports the header parser).
+  (`frameHeader.ts` exports the header parser).
+- **Constants live in a dedicated `<module>Consts.ts` file**, not inlined in the
+  module that uses them: lookup tables, magic numbers, byte offsets, bitmasks.
+  Keeps the logic readable and lets a test assert against a table directly.
+  `frameHeader.ts` reads from `frameHeaderConsts.ts`.
 - Prefer plain functions. A class is used only when there is real per-instance
   state to carry — the streaming frame counter is the example.
 - Helpers and utilities are ordinary exported units in their own files, each
@@ -32,7 +41,8 @@ core logic honest.
   closure buried inside the function that uses it, if it has any logic worth
   checking. If a helper is worth writing, it is worth a direct unit test.
 - `index.ts` in a directory is only a re-export barrel for that directory's
-  public surface; it holds no logic.
+  public surface; it holds no logic. A module never re-exports another module's
+  constants — import them from `<module>Consts.ts` directly.
 
 ## Dependencies
 
@@ -56,7 +66,14 @@ just in a doc. Known simplifications in this project:
 
 ## Testing
 
-- Vitest. Tests live in `test/`, mirroring `src/` one-to-one.
+- **Code and its tests ship in the same PR.** Any PR that adds or changes logic
+  in `src/` includes the unit tests that exercise it — never "tests to follow".
+  A PR that touches `src/` with no corresponding `test/` change does not merge.
+- **Cover every path, not just the happy one.** Each branch, each early return,
+  each error/rejection case gets its own assertion. Table-driven tests
+  (`it.each`) for families of cases (every bitrate, every rejection reason).
+- Vitest. Tests live in `test/`, mirroring `src/` one-to-one — `src/mp3/foo.ts`
+  is tested by `test/mp3/foo.test.ts`.
 - Every exported unit — parsers, helpers, the counter, config loading — has its
   own direct test. A helper that isn't tested in isolation is a smell.
 - The core parser is tested with **synthetic** MPEG streams built in
@@ -67,11 +84,9 @@ just in a doc. Known simplifications in this project:
 - One integration test asserts the real sample returns **6089**.
 - HTTP routes are tested through `buildApp()` + `app.inject()`, no live socket.
 - **One route per test file.** `test/http/health.test.ts`,
-  `test/http/file-upload.test.ts` — never a shared file exercising several
+  `test/http/fileUpload.test.ts` — never a shared file exercising several
   endpoints. Each file builds its own app instance in `beforeAll` and closes it
   in `afterAll`.
-- Each rejection path is covered (no sync, wrong version, wrong layer, reserved
-  bitrate, reserved sample rate, oversized upload, missing file).
 
 ## Git and merging
 

@@ -103,7 +103,7 @@ Every frame starts with 32 bits. MSB first:
 
 We accept a header **only** when `A` is all 1s, `B` = `11`, and `C` = `01`.
 Anything else is either not an MP3 or an out-of-scope MPEG format (§10). Code:
-`src/mp3/frame-header.ts`.
+`src/mp3/frameHeader.ts`.
 
 ### Worked example — the sample's first header `FF FB 50 00`
 
@@ -192,7 +192,7 @@ until fewer than 4 bytes remain
 frameCount = count
 ```
 
-Code: `src/mp3/frame-counter.ts` (streaming), `src/mp3/index.ts` (entry point).
+Code: `src/mp3/frameCounter.ts` (streaming), `src/mp3/index.ts` (entry point).
 
 ---
 
@@ -237,7 +237,7 @@ detects the tag in the first frame, steps over the frame, and does not increment
 the count. It records `hasVbrHeaderFrame`, so the physical count
 (`frameCount + 1` = 6090) stays recoverable if a consumer wants it.
 
-Code: `src/mp3/vbr-header.ts`.
+Code: `src/mp3/vbrHeader.ts`.
 
 ---
 

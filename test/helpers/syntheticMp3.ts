@@ -65,3 +65,23 @@ export function makeHeader(spec: FrameSpec = {}): Buffer {
   header[3] = CHANNEL_MODE_BITS[channelMode] << 6;
   return header;
 }
+
+/**
+ * A minimal ID3v2.4 tag: 10-byte header (synchsafe body size) + `bodySize`
+ * zero bytes, and a 10-byte footer when `footer` is set.
+ */
+export function makeId3v2(bodySize: number, options: { footer?: boolean } = {}): Buffer {
+  const header = Buffer.alloc(10);
+  header.write('ID3', 0, 'ascii');
+  header[3] = 0x04; // version 2.4
+  header[4] = 0x00; // revision
+  header[5] = options.footer ? 0b0001_0000 : 0x00; // footer-present flag
+  header[6] = (bodySize >>> 21) & 0x7f;
+  header[7] = (bodySize >>> 14) & 0x7f;
+  header[8] = (bodySize >>> 7) & 0x7f;
+  header[9] = bodySize & 0x7f;
+
+  const parts = [header, Buffer.alloc(bodySize)];
+  if (options.footer) parts.push(Buffer.alloc(10));
+  return Buffer.concat(parts);
+}

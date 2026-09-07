@@ -1,0 +1,42 @@
+name: PR description
+
+# Fails a PR whose description is missing or left as the empty template, so the
+# squash-merge commit message (which is taken from the PR body) is always
+# meaningful. Repo settings enforce squash-only merging; this enforces substance.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  description:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a filled-in description
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = (context.payload.pull_request.body || '').trim();
+
+            const withoutComments = body.replace(/<!--[\s\S]*?-->/g, '').trim();
+            const meaningfulLines = withoutComments
+              .split('\n')
+              .map((l) => l.replace(/^[-*#\s]+/, '').trim())
+              .filter((l) => l.length > 0);
+
+            const problems = [];
+            if (withoutComments.length < 80) {
+              problems.push('Description is too short — fill in the template sections.');
+            }
+            for (const heading of ['What this does', 'Changes', 'Testing']) {
+              if (!new RegExp(`##\\s*${heading}`, 'i').test(body)) {
+                problems.push(`Missing section: "${heading}".`);
+              }
+            }
+            if (meaningfulLines.length < 4) {
+              problems.push('Not enough substance outside the headings.');
+            }
+
+            if (problems.length) {
+              core.setFailed(problems.join('\n'));
+            }

@@ -1,0 +1,139 @@
+{
+  "generated/cbr-032k-44100-stereo.mp3": {
+    "notes": "CBR 032k, 44100 Hz, stereo",
+    "frameCount": 116,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 117
+  },
+  "generated/cbr-064k-44100-stereo.mp3": {
+    "notes": "CBR 064k, 44100 Hz, stereo",
+    "frameCount": 116,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 117
+  },
+  "generated/cbr-128k-32000-stereo.mp3": {
+    "notes": "CBR 128k, 32000 Hz, stereo",
+    "frameCount": 85,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 85,
+    "mediainfoFrames": 86
+  },
+  "generated/cbr-128k-44100-mono.mp3": {
+    "notes": "CBR 128k, 44100 Hz, mono",
+    "frameCount": 116,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 117
+  },
+  "generated/cbr-128k-44100-stereo-bigid3.mp3": {
+    "notes": "CBR with a large ID3v2 tag (embedded cover art)",
+    "frameCount": 116,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 117
+  },
+  "generated/cbr-128k-44100-stereo-long.mp3": {
+    "notes": "CBR, 15s",
+    "frameCount": 576,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 576,
+    "mediainfoFrames": 576
+  },
+  "generated/cbr-128k-44100-stereo-noxing.mp3": {
+    "notes": "CBR, no Xing/Info frame — count is every frame",
+    "frameCount": 116,
+    "hasVbrHeaderFrame": false,
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 116
+  },
+  "generated/cbr-128k-44100-stereo-tiny.mp3": {
+    "notes": "CBR, ~0.4s — only a handful of frames",
+    "frameCount": 17,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 17,
+    "mediainfoFrames": 18
+  },
+  "generated/cbr-128k-44100-stereo.mp3": {
+    "notes": "CBR 128k, 44100 Hz, stereo",
+    "frameCount": 116,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 117
+  },
+  "generated/cbr-128k-48000-stereo.mp3": {
+    "notes": "CBR 128k, 48000 Hz, stereo",
+    "frameCount": 126,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 126,
+    "mediainfoFrames": 127
+  },
+  "generated/cbr-192k-44100-stereo.mp3": {
+    "notes": "CBR 192k, 44100 Hz, stereo",
+    "frameCount": 116,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 117
+  },
+  "generated/cbr-320k-44100-stereo.mp3": {
+    "notes": "CBR 320k, 44100 Hz, stereo",
+    "frameCount": 116,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 117
+  },
+  "generated/mpeg2-lsf-22050.mp3": {
+    "notes": "MPEG-2 LSF (sample rate < 32k) — out of scope, must reject",
+    "rejected": "UNSUPPORTED_MPEG_FORMAT",
+    "ffprobeFrames": 116,
+    "mediainfoFrames": 118
+  },
+  "generated/mpeg25-11025.mp3": {
+    "notes": "MPEG-2.5 — out of scope, must reject",
+    "rejected": "UNSUPPORTED_MPEG_FORMAT",
+    "ffprobeFrames": 59,
+    "mediainfoFrames": 61
+  },
+  "generated/not-an-mp3.mp3": {
+    "notes": "a WAV file with an .mp3 name — must reject",
+    "rejected": "NOT_AN_MP3",
+    "ffprobeFrames": 11,
+    "mediainfoFrames": null
+  },
+  "generated/vbr-q2-44100-stereo.mp3": {
+    "notes": "VBR q2, 44100 Hz, stereo",
+    "frameCount": 193,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 193,
+    "mediainfoFrames": 193
+  },
+  "generated/vbr-q6-44100-mono.mp3": {
+    "notes": "VBR q6, 44100 Hz, mono",
+    "frameCount": 193,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 193,
+    "mediainfoFrames": 193
+  },
+  "real/samplelib-lame3100-cbr128.mp3": {
+    "notes": "real LAME 3.100, CBR 128k",
+    "frameCount": 735,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 735,
+    "mediainfoFrames": 735
+  },
+  "real/soundhelix-1-lame-cbr192-noxing.mp3": {
+    "notes": "real LAME 3.97, CBR 192k, Xing frame stripped",
+    "frameCount": 1149,
+    "hasVbrHeaderFrame": false,
+    "ffprobeFrames": 1149,
+    "mediainfoFrames": 1149
+  },
+  "real/soundhelix-6-lame-cbr192.mp3": {
+    "notes": "real LAME, CBR 192k, with Xing frame",
+    "frameCount": 766,
+    "hasVbrHeaderFrame": true,
+    "ffprobeFrames": 766,
+    "mediainfoFrames": 766
+  }
+}

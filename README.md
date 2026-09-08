@@ -70,17 +70,18 @@ variables through the platform instead; the repo ships no per-environment files.
 
 ## Documentation
 
-| Doc                                                          | What's in it                                                 |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [`docs/TASKS.md`](docs/TASKS.md)                             | Plan and progress, milestone by milestone                    |
-| [`docs/requirements.md`](docs/requirements.md)               | What the service must do, and its constraints                |
-| [`docs/mp3-frame-structure.md`](docs/mp3-frame-structure.md) | MPEG-1 Layer III frame format and how frames are counted     |
-| [`docs/api-contract.md`](docs/api-contract.md)               | Endpoint request/response and error contract                 |
-| [`docs/manual-testing.md`](docs/manual-testing.md)           | Tools and scripts for exercising the API by hand             |
-| [`docs/repo-setup.md`](docs/repo-setup.md)                   | One-time GitHub settings (squash-only merge, `main` ruleset) |
-| [`.agent/ARCHITECTURE.md`](.agent/ARCHITECTURE.md)           | System shape and why it's built this way                     |
-| [`.agent/CODING_GUIDELINES.md`](.agent/CODING_GUIDELINES.md) | Conventions, testing approach, merge rules                   |
-| [`.agent/DECISIONS.md`](.agent/DECISIONS.md)                 | Decision log                                                 |
+| Doc                                                                | What's in it                                                 |
+| ------------------------------------------------------------------ | ------------------------------------------------------------ |
+| [`docs/TASKS.md`](docs/TASKS.md)                                   | Plan and progress, milestone by milestone                    |
+| [`docs/requirements.md`](docs/requirements.md)                     | What the service must do, and its constraints                |
+| [`docs/mp3-frame-structure.md`](docs/mp3-frame-structure.md)       | MPEG-1 Layer III frame format and how frames are counted     |
+| [`docs/verifying-frame-counts.md`](docs/verifying-frame-counts.md) | The verification corpus and why `ffprobe` is the oracle      |
+| [`docs/api-contract.md`](docs/api-contract.md)                     | Endpoint request/response and error contract                 |
+| [`docs/manual-testing.md`](docs/manual-testing.md)                 | Tools and scripts for exercising the API by hand             |
+| [`docs/repo-setup.md`](docs/repo-setup.md)                         | One-time GitHub settings (squash-only merge, `main` ruleset) |
+| [`.agent/ARCHITECTURE.md`](.agent/ARCHITECTURE.md)                 | System shape and why it's built this way                     |
+| [`.agent/CODING_GUIDELINES.md`](.agent/CODING_GUIDELINES.md)       | Conventions, testing approach, merge rules                   |
+| [`.agent/DECISIONS.md`](.agent/DECISIONS.md)                       | Decision log                                                 |
 
 ## Project layout
 

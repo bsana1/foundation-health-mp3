@@ -8,10 +8,11 @@ Requirements and constraints are in `docs/requirements.md`.
 
 ## Current state
 
-Functionally complete. `POST /file-upload` streams the upload through the frame
-counter and returns `{ "frameCount": <n> }` (6089 for the sample), with the
-error contract in `docs/api-contract.md`. Remaining work is a load-test pass and
-release polish — see `docs/TASKS.md`.
+Complete against the assignment. `POST /file-upload` streams the upload through
+the frame counter and returns `{ "frameCount": <n> }` (6089 for the sample),
+with the error contract in `docs/api-contract.md`. Correctness is checked
+against a 20-file corpus (`docs/verifying-frame-counts.md`); constant memory and
+concurrency are proven in `docs/scalability.md`.
 
 ## Shape of the system
 

@@ -132,12 +132,12 @@ Separate concern (Milestone 3), noted here so it is not confused with the above:
 - **k6** (`brew install k6`) — scriptable load scenarios, good reports. Can post
   a multipart body from a script for realistic upload load.
 
-## Recommendation for this repo
+## What this repo uses
 
-1. **`requests/api.http`** committed — zero install for anyone on VS Code or a
-   JetBrains IDE, reviewable, and `ijhttp` can run it in CI later.
-2. **`scripts/smoke.sh`** — one command, all endpoints and error codes, works
-   against localhost or a deployed URL.
-3. Reach for **Bruno** if we want a GUI; its collection lives in the repo too.
+The README's `curl` examples are the canonical "how to test the API by hand",
+and `npm test` covers the endpoint automatically (`test/http/`). This page is a
+reference for anyone who wants a richer setup — a committed `requests/api.http`,
+a `scripts/smoke.sh`, or a Bruno collection are all easy additions on top of the
+options above, but none is needed to exercise the service.
 
 Avoid committing a Postman/Insomnia JSON export — verbose and hard to review.

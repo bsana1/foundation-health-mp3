@@ -29,8 +29,8 @@ hardening, then release readiness.
       footer). Real-data test: sample tag is 44 bytes, first real header decodes
       as documented.
 - [x] `src/mp3/vbrHeader.ts` — detect the Xing/Info/VBRI header frame and
-      exclude it from the count (this is what makes our number match `mediainfo`).
-      (PR #5)
+      exclude it from the count (this is what makes our number match
+      `ffprobe -count_frames`). (PR #5)
 - [x] `src/mp3/frameCounter.ts` — streaming state machine: `push(chunk)` /
       `end()`, incremental ID3 skip, carry-over buffer, O(1) memory, bounded
       resync
@@ -42,6 +42,11 @@ hardening, then release readiness.
       resync, lifecycle) — `frameCounter.test.ts`
 - [x] Integration test asserting `6089` against the provided sample —
       `sample.test.ts`
+- [x] Frame-count corpus: 20 real + generated MP3s across the format space,
+      expected counts pinned from `ffprobe -count_frames`, checked in CI
+      (`corpus.test.ts`) and against the live tools (`npm run corpus:verify`).
+      `countMp3Frames` matches `ffprobe` on every countable file. See
+      `docs/verifying-frame-counts.md`.
 - [ ] Wire the counter into the route; drop the stub
 - [ ] Optional: small CLI (`mp3-frames <file>`) reusing the core, for local
       verification against `mediainfo`

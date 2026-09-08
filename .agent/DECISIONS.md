@@ -2,6 +2,19 @@
 
 Newest first. Each entry: the decision, why, and what was rejected.
 
+## 2026-09-08 — `ffprobe -count_frames` is the verification oracle, not `mediainfo`
+
+Built a committed corpus (`test/fixtures/corpus/`, 20 files) to check
+`countMp3Frames` across the format space. Found that `mediainfo`'s `FrameCount`
+is a **derived estimate**, not a count: for VBR it echoes the Xing header field,
+for CBR it reports `round(duration × frame_rate)`, which rounds up to include the
+Info frame on short files (117 vs the real 116). `ffprobe -select_streams a:0
+-count_frames` actually decodes and counts audio packets, consistently excluding
+the metadata frame — same definition as ours. So expected counts in
+`manifest.json` come from `ffprobe`; `mediainfo` is shown for sanity but allowed
+to differ. `countMp3Frames` matches `ffprobe` on all 17 countable corpus files
+(and the provided sample). Details in `docs/verifying-frame-counts.md`.
+
 ## 2026-09-08 — Frame counter: streaming state machine, incremental everything
 
 `Mp3FrameCounter` is fed byte chunks via `push()` and finalised with `end()`

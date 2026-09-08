@@ -1,8 +1,8 @@
 # Plan & task list
 
-Working log of what's done and what's next. Checked items are in `main`.
-The guiding order: a running service first, then correct frame counting, then
-hardening, then release readiness.
+Working log of what's done and what's left. Checked items are in `main`.
+Order: a running service first, then correct frame counting, then hardening,
+then submission.
 
 ## Milestone 0 — Bootstrap (done)
 
@@ -50,8 +50,6 @@ hardening, then release readiness.
 - [x] Wire the counter into the route; drop the stub — `countMp3Frames(upload.file)`
       streamed straight in; endpoint returns `{ "frameCount": 6089 }` for the
       sample
-- [ ] Optional: small CLI (`mp3-frames <file>`) reusing the core, for local
-      verification against `mediainfo`
 
 ## Milestone 2 — Error handling & edges
 
@@ -67,29 +65,38 @@ hardening, then release readiness.
 - [x] App-level error handler — unexpected errors become `500 INTERNAL` with the
       real cause logged, not returned (`src/http/app.ts`)
 
-## Milestone 3 — Scalability & perf
+## Milestone 3 — Scalability
 
-- [ ] Confirm constant memory on a multi-hundred-MB input (streamed, not buffered)
-- [ ] Load/perf test (autocannon or k6) against the sample; record throughput and
-      RSS in `docs/`
-- [ ] Hot-path tuning: the counter currently `Buffer.concat`s carry + chunk on
-      every `push`, which is O(n·chunks) for pathologically small chunks. Replace
-      with a ring/offset buffer if the perf test shows it matters.
+- [x] Constant memory on a large input: `scripts/perf-memory.ts` streams up to
+      4 GB through the counter and 2 GB through `POST /file-upload` with **+0 MB**
+      RSS growth. `test/mp3/memory.test.ts` is the CI guard. Write-up in
+      `docs/scalability.md`.
+- [x] `Buffer.concat`-per-push: measured — ~3500 MB/s at 64 KiB chunks, only
+      slow at pathological < 512 B chunks that no real client sends. Not worth
+      the complexity to change; documented.
+- [x] Concurrency: `test/http/concurrency.test.ts` — 48 overlapping mixed
+      uploads + 24 of the same file, each response correct for its own request.
+      No shared mutable state.
+- [x] Load/RPS testing deliberately **out of scope** — depends on the
+      deployment, not the code (`docs/scalability.md`).
 
-## Milestone 4 — Release readiness
+## Milestone 4 — Submission
 
-- [ ] README polished: quick start, test instructions, curl example, contract
-- [ ] `.agent/DECISIONS.md` current
-- [ ] "Known limitations / next steps" section in the README
-- [ ] Manual-testing artifact: `requests/api.http` + `scripts/smoke.sh`
-      (options weighed in `docs/manual-testing.md`)
+Scoped to what the assignment asks: a git repo with clear run instructions and
+an example of how to test.
+
+- [ ] README final read-through: run instructions, how to test, API contract,
+      a short "with more time" note
 - [ ] Final pass: `npm run check` clean, CI green, sample returns `6089`
 - [ ] Git history reads as a deliberate progression
-- [ ] Dockerfile + container smoke run (optional)
 
-## Open questions
+## Resolved decisions
 
-- Truncated final frame — count it or not? Leaning "count if the header is whole".
-- Free-format bitrate (index 0) — out of scope; reject with a clear message.
-- Keep the `mp3-frames` CLI, or is the HTTP endpoint enough? Keep it only if it
-  stays small and shares the core.
+All recorded in `.agent/DECISIONS.md`. In brief:
+
+- Count = audio frames, excluding a leading Xing/Info/VBRI metadata frame — the
+  definition `ffprobe -count_frames` uses; `hasVbrHeaderFrame` exposes the +1.
+- Truncated final frame (valid header, runs past EOF): counted once.
+- Free-format bitrate and non-MPEG-1-Layer-III: rejected, out of scope.
+- No CLI — the HTTP endpoint plus `npm run corpus:verify` cover local checking.
+- No Dockerfile, no load/RPS numbers (deployment-dependent).

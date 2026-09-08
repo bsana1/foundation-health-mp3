@@ -1,11 +1,11 @@
 # MP3 File Analysis App
 
-An HTTP service that accepts an MP3 upload and returns the number of MPEG-1 Audio
-Layer III audio frames in it. The upload is streamed through a hand-written frame
-parser — never buffered whole — so memory does not grow with file size.
+An HTTP service that accepts an MP3 upload and returns the number of MPEG-1
+Audio Layer III frames in it. The upload is streamed through a hand-written
+frame parser — never buffered whole — so memory does not grow with file size.
 
-Remaining work is tracked in [`docs/TASKS.md`](docs/TASKS.md) (a load-test pass
-and release polish).
+`POST /file-upload` with the provided sample returns `{ "frameCount": 6089 }`,
+the value `ffprobe -count_frames` and `mediainfo` report.
 
 ## Prerequisites
 
@@ -91,6 +91,7 @@ variables through the platform instead; the repo ships no per-environment files.
 | [`docs/requirements.md`](docs/requirements.md)                     | What the service must do, and its constraints                |
 | [`docs/mp3-frame-structure.md`](docs/mp3-frame-structure.md)       | MPEG-1 Layer III frame format and how frames are counted     |
 | [`docs/verifying-frame-counts.md`](docs/verifying-frame-counts.md) | The verification corpus and why `ffprobe` is the oracle      |
+| [`docs/scalability.md`](docs/scalability.md)                       | Streaming design + measured constant-memory results          |
 | [`docs/api-contract.md`](docs/api-contract.md)                     | Endpoint request/response and error contract                 |
 | [`docs/manual-testing.md`](docs/manual-testing.md)                 | Tools and scripts for exercising the API by hand             |
 | [`docs/repo-setup.md`](docs/repo-setup.md)                         | One-time GitHub settings (squash-only merge, `main` ruleset) |
@@ -121,7 +122,22 @@ src/
 test/
   fixtures/               the provided sample + the verification corpus
   helpers/                synthetic MP3 builders, the sample loader
-  http/                   endpoint tests (one route per file)
-  mp3/                    parser unit + corpus tests
-scripts/                  corpus generation and cross-tool verification
+  http/                   endpoint + concurrency tests
+  mp3/                    parser unit, corpus, and memory tests
+scripts/                  corpus generation, cross-tool verification, memory profiling
 ```
+
+## Design notes / with more time
+
+- **Counting definition.** A leading Xing/Info/VBRI frame carries metadata, not
+  audio; `ffprobe` and the encoder's own tag exclude it from the count, so we
+  do too. The result also carries `hasVbrHeaderFrame`, so the "every physical
+  frame" number is `frameCount + 1` if a consumer wants it.
+- **Resync.** Malformed bytes mid-stream trigger a bounded forward scan for the
+  next valid header (`CORRUPT_STREAM` past 128 KiB). A fuller error-recovery
+  decoder is out of scope.
+- **Chunk-boundary cost.** The counter does one `Buffer.concat` per pushed
+  chunk. Measured fine at real HTTP chunk sizes (§ `docs/scalability.md`); an
+  offset/ring buffer would remove even the pathological-small-chunk cost.
+- **Out of scope** (`docs/requirements.md`): MPEG-2 / 2.5, Layers I–II,
+  free-format bitrate — all detected and rejected with a clear `422`.

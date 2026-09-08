@@ -76,6 +76,9 @@ hardening, then release readiness.
 - [x] `Buffer.concat`-per-push: measured — ~3500 MB/s at 64 KiB chunks, only
       slow at pathological < 512 B chunks that no real client sends. Not worth
       the complexity to change; documented.
+- [x] Concurrency: `test/http/concurrency.test.ts` — 48 overlapping mixed
+      uploads + 24 of the same file, each response correct for its own request.
+      No shared mutable state.
 - [x] Load/RPS testing deliberately **out of scope** — depends on the
       deployment, not the code (`docs/scalability.md`).
 

@@ -60,6 +60,22 @@ so replacing the concat with an offset/ring buffer is **not worth doing** — it
 would add complexity to guard against a case that does not occur. Noted in
 `docs/TASKS.md` as a revisit-if-needed.
 
+## Concurrency
+
+Every request gets its own `Mp3FrameCounter`, its own carry buffer, and its own
+multipart parser — there is no module-level mutable state, and `config` is read
+once and never changed. Node's single thread means concurrent requests only
+interleave at `await` points (waiting for the next chunk), so no data race is
+possible.
+
+`test/http/concurrency.test.ts` proves it: 48 overlapping uploads (different
+files, different sizes, some that must 422) plus 24 concurrent uploads of the
+same file — every response is correct for _its own_ request, no count or error
+bleeds between them. Also verified with 20 parallel `curl` uploads against a
+running server.
+
+N concurrent uploads use N × (one chunk + one frame) — still bounded per request.
+
 ## Bounds that keep a request finite
 
 - `MAX_UPLOAD_BYTES` (default 250 MiB) → `413` before an oversized upload is

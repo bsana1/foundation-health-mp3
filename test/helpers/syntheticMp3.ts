@@ -107,6 +107,36 @@ export function chunked(buf: Buffer, chunkSize: number): Buffer[] {
   return chunks;
 }
 
+/**
+ * Lazily yield `frameCount` identical frames as fixed-size chunks — the whole
+ * stream is never held in memory, so this can produce gigabytes for a
+ * memory/throughput test. Each yielded chunk is a fresh Buffer.
+ */
+export function* frameChunks(
+  frameCount: number,
+  chunkBytes = 64 * 1024,
+  spec: FrameSpec = {},
+): Generator<Buffer> {
+  const frame = makeFrame(spec);
+  const chunk = Buffer.allocUnsafe(chunkBytes);
+  let filled = 0;
+
+  for (let i = 0; i < frameCount; i += 1) {
+    let copied = 0;
+    while (copied < frame.length) {
+      const n = Math.min(frame.length - copied, chunkBytes - filled);
+      frame.copy(chunk, filled, copied, copied + n);
+      filled += n;
+      copied += n;
+      if (filled === chunkBytes) {
+        yield Buffer.from(chunk);
+        filled = 0;
+      }
+    }
+  }
+  if (filled > 0) yield Buffer.from(chunk.subarray(0, filled));
+}
+
 /** A 128-byte ID3v1 trailer (`"TAG"` + zeroed fields). */
 export function makeId3v1(): Buffer {
   const tag = Buffer.alloc(128);

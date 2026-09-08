@@ -11,6 +11,7 @@
     "start": "node --env-file-if-exists=.env dist/index.js",
     "build": "tsc --project tsconfig.build.json",
     "corpus:verify": "tsx scripts/corpus-verify.ts",
+    "perf:memory": "NODE_OPTIONS=--expose-gc tsx scripts/perf-memory.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

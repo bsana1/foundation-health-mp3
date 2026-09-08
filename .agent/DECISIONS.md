@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, why, and what was rejected.
 
+## 2026-09-08 — One error-response shape; app-level handler for the unexpected
+
+Every failure returns `{ "error": { "code", "message" } }` — a stable `code` for
+programmatic handling, a `message` for humans. The route maps the expected cases
+directly (analysis errors → 422, no file → 400, oversize → 413, wrong
+content-type → 415). Anything else propagates to an `app.setErrorHandler` that
+reshapes known framework errors, and turns genuinely unexpected errors into
+`500 { code: "INTERNAL" }` with the real error logged server-side, never
+returned. Rejected: letting Fastify's default `{ statusCode, error, message }`
+shape through — inconsistent with our body, and its 500s echo the message.
+
 ## 2026-09-08 — `ffprobe -count_frames` is the verification oracle, not `mediainfo`
 
 Built a committed corpus (`test/fixtures/corpus/`, 20 files) to check

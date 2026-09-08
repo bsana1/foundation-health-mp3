@@ -8,9 +8,10 @@ Requirements and constraints are in `docs/requirements.md`.
 
 ## Current state
 
-The MP3 core is built and returns the right count for the sample (6089). The
-HTTP route is **not yet wired to it** — `POST /file-upload` still returns a
-stubbed `0` until that PR lands. See `docs/TASKS.md`.
+Functionally complete. `POST /file-upload` streams the upload through the frame
+counter and returns `{ "frameCount": <n> }` (6089 for the sample), with the
+error contract in `docs/api-contract.md`. Remaining work is a load-test pass and
+release polish — see `docs/TASKS.md`.
 
 ## Shape of the system
 
@@ -42,7 +43,7 @@ synthetic byte streams, reused from a CLI, and reasoned about on its own. The
 HTTP layer stays thin: content-type check, get the file stream, hand it to the
 core, translate the result or error into a response.
 
-## Data flow for a request (target design)
+## Data flow for a request
 
 1. `@fastify/multipart` parses the `multipart/form-data` envelope incrementally
    and exposes the file part as a `Readable` stream. The full upload is never

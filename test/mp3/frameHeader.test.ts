@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseFrameHeader } from '../../src/mp3/frameHeader.js';
+import { parseFrameHeader, type FrameHeader } from '../../src/mp3/frameHeader.js';
 import { HEADER_BYTES, SAMPLES_PER_FRAME } from '../../src/mp3/frameHeaderConsts.js';
 import { makeHeader } from '../helpers/syntheticMp3.js';
 
 /** Fail the test if the parse did not succeed, and narrow the type. */
-function expectOk(result: ReturnType<typeof parseFrameHeader>) {
+function expectOk(result: ReturnType<typeof parseFrameHeader>): FrameHeader {
   if (!result.ok) {
     throw new Error(`expected a valid header, got error: ${result.error}`);
   }

@@ -2,6 +2,28 @@
 
 Newest first. Each entry: the decision, why, and what was rejected.
 
+## 2026-09-08 — Frame counter: streaming state machine, incremental everything
+
+`Mp3FrameCounter` is fed byte chunks via `push()` and finalised with `end()`
+(not a Node stream subclass — the wrapper `countMp3Frames` adapts streams to it).
+Design choices:
+
+- **ID3v2 skipped incrementally**, not buffered. A tag with album art can be
+  100s of KB; the counter tracks "bytes of tag still to drop" and discards them
+  chunk by chunk, so memory stays O(chunk) even for a huge tag.
+- **Carry-over is copied out** (`Buffer.from(subarray)`) after each consume so the
+  parent concat buffer is released — the retained slice is at most ~1 frame.
+- **Bounded resync.** On a malformed header mid-stream, scan forward for the next
+  valid one; track bytes skipped since the last good frame and throw
+  `CorruptStreamError` past `maxResyncBytes` (default 128 KiB). A first-byte
+  parse failure is `NotAnMp3Error` / `UnsupportedMpegFormatError` immediately, no
+  scanning.
+- **Truncated final frame** (declared length runs past EOF, header valid): counted
+  once. Matches lenient tools; documented in `docs/mp3-frame-structure.md` §10.
+- Known cost: `Buffer.concat(carry, chunk)` per `push` is O(n·chunks) for
+  pathologically small chunks. Flagged for the perf milestone; fine for real
+  upload chunk sizes.
+
 ## 2026-09-07 — Branch + PR for everything; squash-only merges
 
 No commits land on `main` directly — every change, however small, goes on a

@@ -93,6 +93,27 @@ export function makeFrame(spec: FrameSpec & { tag?: VbrTag } = {}): Buffer {
   return frame;
 }
 
+/** `count` identical frames back to back. */
+export function makeFrames(count: number, spec: FrameSpec & { tag?: VbrTag } = {}): Buffer {
+  return Buffer.concat(Array.from({ length: count }, () => makeFrame(spec)));
+}
+
+/** Split a buffer into fixed-size chunks, to drive the streaming path. */
+export function chunked(buf: Buffer, chunkSize: number): Buffer[] {
+  const chunks: Buffer[] = [];
+  for (let offset = 0; offset < buf.length; offset += chunkSize) {
+    chunks.push(buf.subarray(offset, offset + chunkSize));
+  }
+  return chunks;
+}
+
+/** A 128-byte ID3v1 trailer (`"TAG"` + zeroed fields). */
+export function makeId3v1(): Buffer {
+  const tag = Buffer.alloc(128);
+  tag.write('TAG', 0, 'ascii');
+  return tag;
+}
+
 /**
  * A minimal ID3v2.4 tag: 10-byte header (synchsafe body size) + `bodySize`
  * zero bytes, and a 10-byte footer when `footer` is set.

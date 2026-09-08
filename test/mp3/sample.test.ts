@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 
 import { parseFrameHeader } from '../../src/mp3/frameHeader.js';
 import { id3v2TagSize } from '../../src/mp3/id3.js';
+import { isVbrHeaderFrame } from '../../src/mp3/vbrHeader.js';
 import { SAMPLE_MP3 } from '../helpers/sample.js';
 
 describe('provided sample file', () => {
@@ -40,5 +41,13 @@ describe('provided sample file', () => {
 
     const secondOffset = firstFrameOffset + first.header.frameLength;
     expect(parseFrameHeader(SAMPLE_MP3, secondOffset).ok).toBe(true);
+  });
+
+  it('the first frame is a Xing metadata frame, not audio', () => {
+    const firstFrameOffset = id3v2TagSize(SAMPLE_MP3);
+    const first = parseFrameHeader(SAMPLE_MP3, firstFrameOffset);
+    if (!first.ok) throw new Error('first frame did not parse');
+
+    expect(isVbrHeaderFrame(SAMPLE_MP3, firstFrameOffset, first.header)).toBe(true);
   });
 });

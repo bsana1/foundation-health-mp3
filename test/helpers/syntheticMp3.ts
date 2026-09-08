@@ -45,6 +45,16 @@ export interface FrameSpec {
   channelMode?: keyof typeof CHANNEL_MODE_BITS;
 }
 
+/** VBR/CBR metadata tag to embed at the correct offset in a synthetic frame. */
+export type VbrTag = 'Xing' | 'Info' | 'VBRI';
+
+/** The byte length of a frame with `spec` — the same formula the parser uses. */
+export function frameLengthOf(spec: FrameSpec = {}): number {
+  const bitrateKbps = spec.bitrateKbps ?? 128;
+  const sampleRateHz = spec.sampleRateHz ?? 44100;
+  return Math.floor((144 * bitrateKbps * 1000) / sampleRateHz) + (spec.padded ? 1 : 0);
+}
+
 /** The 4-byte header for `spec`. */
 export function makeHeader(spec: FrameSpec = {}): Buffer {
   const bitrateKbps = spec.bitrateKbps ?? 128;
@@ -64,6 +74,23 @@ export function makeHeader(spec: FrameSpec = {}): Buffer {
   header[2] = (bitrateIndex << 4) | (sampleRateIndex << 2) | (spec.padded ? 0b10 : 0);
   header[3] = CHANNEL_MODE_BITS[channelMode] << 6;
   return header;
+}
+
+/**
+ * A full frame: the 4-byte header followed by a zero-filled body of the right
+ * length. With `tag`, the metadata signature is written at the offset the parser
+ * looks for it (Xing/Info after the side-info block, VBRI at a fixed +32).
+ */
+export function makeFrame(spec: FrameSpec & { tag?: VbrTag } = {}): Buffer {
+  const frame = Buffer.alloc(frameLengthOf(spec));
+  makeHeader(spec).copy(frame);
+
+  if (spec.tag !== undefined) {
+    const sideInfoBytes = (spec.channelMode ?? 'stereo') === 'mono' ? 17 : 32;
+    const at = spec.tag === 'VBRI' ? 4 + 32 : 4 + sideInfoBytes;
+    frame.write(spec.tag, at, 'ascii');
+  }
+  return frame;
 }
 
 /**

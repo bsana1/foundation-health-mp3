@@ -96,10 +96,21 @@ export class Mp3FrameCounter {
   }
 
   /**
-   * Consume everything `carry` currently allows: skip the ID3v2 tag, then walk
-   * whole frames. A trailing partial frame stays in `carry` for the next chunk.
-   * When `atEof`, a final frame whose declared length runs past the end is still
-   * counted once.
+   * Process everything `carry` currently allows, then discard what was consumed.
+   *
+   * With the whole file in memory this would just be:
+   *
+   *     let cursor = id3v2TagSize(file);
+   *     while (cursor + HEADER_BYTES <= file.length) {
+   *       const { header } = parseFrameHeader(file, cursor);   // (assume ok)
+   *       if (!isLeadingMetadataFrame) frameCount++;
+   *       cursor += header.frameLength;
+   *     }
+   *
+   * The extra machinery here is only because `file` arrives in chunks: each step
+   * that needs more bytes than `carry` holds has to stop and resume on the next
+   * `push` — unless `atEof`, when "not enough bytes" instead means "truncated
+   * final frame, count it once".
    */
   private consume(atEof: boolean): void {
     if (!this.skipId3(atEof)) return;
@@ -109,51 +120,55 @@ export class Mp3FrameCounter {
       const result = parseFrameHeader(this.carry, cursor);
 
       if (!result.ok) {
-        if (!this.sawValidHeader) {
-          throw WRONG_FORMAT_ERRORS.has(result.error)
-            ? new UnsupportedMpegFormatError(
-                `First frame is valid MPEG audio but not MPEG-1 Layer III (${result.error})`,
-              )
-            : new NotAnMp3Error('Stream does not start with an MPEG-1 Layer III frame header');
-        }
-
-        const next = this.findNextHeader(cursor);
-        if (next !== -1) {
-          this.accountResync(next - cursor);
-          cursor = next;
-          continue;
-        }
-
-        // Nothing usable in what we hold. Drop the unreadable run — keeping the
-        // last few bytes in case a sync straddles the next chunk boundary — and
-        // wait for more (or, at EOF, stop).
-        const dropTo = atEof ? this.carry.length : this.carry.length - (HEADER_BYTES - 1);
-        this.accountResync(dropTo - cursor);
-        cursor = dropTo;
-        break;
+        this.rejectIfStreamNeverStarted(result.error);
+        cursor = this.resyncFrom(cursor, atEof);
+        continue; // the loop condition ends the walk once cursor runs out
       }
+
+      const frameEnd = cursor + result.header.frameLength;
+      const wholeFrame = frameEnd <= this.carry.length;
+      if (!wholeFrame && !atEof) break; // wait for the rest of this frame
 
       this.sawValidHeader = true;
       this.referenceHeader ??= result.header;
-
-      const available = this.carry.length - cursor;
-      const { frameLength } = result.header;
-
-      if (available < frameLength) {
-        if (!atEof) break; // wait for the rest of the frame
-        this.countFrame(result.header, cursor, false); // truncated final frame
-        cursor = this.carry.length;
-        break;
-      }
-
-      this.countFrame(result.header, cursor, true);
-      cursor += frameLength;
+      this.countFrame(result.header, cursor, wholeFrame);
       this.resyncRunBytes = 0;
+
+      cursor = wholeFrame ? frameEnd : this.carry.length; // truncated final frame → to EOF
     }
 
     if (cursor > 0) {
       this.carry = Buffer.from(this.carry.subarray(cursor));
     }
+  }
+
+  /**
+   * A header failed to parse. If it is the very first thing in the stream, that
+   * is a hard error — the input is not an MP3, or not the supported format.
+   * Otherwise the caller resynchronises.
+   */
+  private rejectIfStreamNeverStarted(error: HeaderParseError): void {
+    if (this.sawValidHeader) return;
+    throw WRONG_FORMAT_ERRORS.has(error)
+      ? new UnsupportedMpegFormatError(
+          `First frame is valid MPEG audio but not MPEG-1 Layer III (${error})`,
+        )
+      : new NotAnMp3Error('Stream does not start with an MPEG-1 Layer III frame header');
+  }
+
+  /**
+   * After a malformed header at `from`, return the offset to resume the walk at:
+   * the next valid header if there is one in `carry`, otherwise the point past
+   * the unreadable run (keeping the last few bytes in case a sync straddles the
+   * next chunk). Charges the skipped bytes to the resync budget.
+   */
+  private resyncFrom(from: number, atEof: boolean): number {
+    const found = this.findNextHeader(from);
+    const resumeAt =
+      found !== -1 ? found : atEof ? this.carry.length : this.carry.length - (HEADER_BYTES - 1);
+
+    this.accountResync(resumeAt - from);
+    return resumeAt;
   }
 
   /**

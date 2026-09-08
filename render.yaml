@@ -1,0 +1,21 @@
+# Render blueprint — https://render.com/docs/blueprint-spec
+#
+# In the Render dashboard: New → Blueprint → connect this repo. Render reads
+# this file, creates the service, and redeploys on every push to the default
+# branch. Node version comes from .node-version.
+
+services:
+  - type: web
+    name: foundation-health-mp3
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Cap uploads well under the platform's request limit so oversized
+      # uploads get a clean 413 instead of a proxy error.
+      - key: MAX_UPLOAD_BYTES
+        value: '26214400' # 25 MiB

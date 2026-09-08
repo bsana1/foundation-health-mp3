@@ -96,8 +96,16 @@ variables through the platform instead; the repo ships no per-environment files.
 
 ## Documentation
 
+[`.agent/`](.agent/) holds the living project context — architecture, coding
+guidelines, and a decision log — kept current as the code changes.
+[`AGENTS.md`](AGENTS.md) is a short orientation that points there (and
+`CLAUDE.md` imports it).
+
 | Doc                                                                | What's in it                                                 |
 | ------------------------------------------------------------------ | ------------------------------------------------------------ |
+| [`.agent/ARCHITECTURE.md`](.agent/ARCHITECTURE.md)                 | System shape and why it's built this way                     |
+| [`.agent/CODING_GUIDELINES.md`](.agent/CODING_GUIDELINES.md)       | Conventions, testing approach, merge rules                   |
+| [`.agent/DECISIONS.md`](.agent/DECISIONS.md)                       | Decision log                                                 |
 | [`docs/TASKS.md`](docs/TASKS.md)                                   | Plan and progress, milestone by milestone                    |
 | [`docs/requirements.md`](docs/requirements.md)                     | What the service must do, and its constraints                |
 | [`docs/mp3-frame-structure.md`](docs/mp3-frame-structure.md)       | MPEG-1 Layer III frame format and how frames are counted     |
@@ -106,9 +114,6 @@ variables through the platform instead; the repo ships no per-environment files.
 | [`docs/api-contract.md`](docs/api-contract.md)                     | Endpoint request/response and error contract                 |
 | [`docs/manual-testing.md`](docs/manual-testing.md)                 | Tools and scripts for exercising the API by hand             |
 | [`docs/repo-setup.md`](docs/repo-setup.md)                         | One-time GitHub settings (squash-only merge, `main` ruleset) |
-| [`.agent/ARCHITECTURE.md`](.agent/ARCHITECTURE.md)                 | System shape and why it's built this way                     |
-| [`.agent/CODING_GUIDELINES.md`](.agent/CODING_GUIDELINES.md)       | Conventions, testing approach, merge rules                   |
-| [`.agent/DECISIONS.md`](.agent/DECISIONS.md)                       | Decision log                                                 |
 
 ## Project layout
 

@@ -67,6 +67,17 @@ npm run lint         # eslint
 npm run check        # format check + lint + typecheck + test (what CI runs)
 ```
 
+## Deploy
+
+The service is 12-factor: it reads `PORT` / `HOST` from the environment, logs to
+stdout, and touches no local files at runtime. Any Node host works.
+
+[`render.yaml`](render.yaml) is a ready blueprint for [Render](https://render.com)'s
+free tier — in the dashboard, **New → Blueprint → connect this repo**. It builds
+with `npm ci && npm run build`, starts with `npm start`, health-checks `/health`,
+and sets `MAX_UPLOAD_BYTES` to 25 MiB (under the platform's request cap). Every
+push to `main` redeploys.
+
 ## Configuration
 
 All environment variables are optional. Their defaults and validation live in

@@ -20,11 +20,14 @@ hardening, then release readiness.
       (`mediainfo` and `ffprobe -count_frames` agree)
 - [x] Docs: requirements, MP3 structure reference, API contract, `.agent/`
 
-## Milestone 1 — Frame counting (next)
+## Milestone 1 — Frame counting
 
-- [ ] `src/mp3/id3.ts` — measure and skip a leading ID3v2 tag (synchsafe size)
-- [ ] `src/mp3/frameHeader.ts` — parse + validate the 4-byte header; bitrate /
-      sample-rate tables; frame-length formula; typed parse result
+- [x] `src/mp3/frameHeader.ts` — parse + validate the 4-byte header; bitrate /
+      sample-rate tables (`frameHeaderConsts.ts`); frame-length formula; typed
+      parse result. (PR #3)
+- [x] `src/mp3/id3.ts` — measure a leading ID3v2 tag (synchsafe size, optional
+      footer). Real-data test: sample tag is 44 bytes, first real header decodes
+      as documented.
 - [ ] `src/mp3/frameCounter.ts` — streaming state machine: `update(chunk)` /
       `finish()`, carry-over buffer, O(1) memory
 - [ ] `src/mp3/vbrHeader.ts` — detect the Xing/Info/VBRI header frame and

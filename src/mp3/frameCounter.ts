@@ -18,6 +18,7 @@ import { CorruptStreamError, NotAnMp3Error, UnsupportedMpegFormatError } from '.
 import { DEFAULT_MAX_RESYNC_BYTES } from './frameCounterConsts.js';
 import { parseFrameHeader, type FrameHeader, type HeaderParseError } from './frameHeader.js';
 import { HEADER_BYTES, SAMPLES_PER_FRAME } from './frameHeaderConsts.js';
+import { findNextFrameHeader, resyncResumeOffset } from './frameResync.js';
 import { ID3V2_MIN_BYTES, id3v2TagSize } from './id3.js';
 import { isVbrHeaderFrame } from './vbrHeader.js';
 
@@ -157,16 +158,12 @@ export class Mp3FrameCounter {
   }
 
   /**
-   * After a malformed header at `from`, return the offset to resume the walk at:
-   * the next valid header if there is one in `carry`, otherwise the point past
-   * the unreadable run (keeping the last few bytes in case a sync straddles the
-   * next chunk). Charges the skipped bytes to the resync budget.
+   * After a malformed header at `from`, return the offset to resume the walk at
+   * (see `frameResync.ts`) and charge the skipped bytes to the resync budget.
    */
   private resyncFrom(from: number, atEof: boolean): number {
-    const found = this.findNextHeader(from);
-    const resumeAt =
-      found !== -1 ? found : atEof ? this.carry.length : this.carry.length - (HEADER_BYTES - 1);
-
+    const found = findNextFrameHeader(this.carry, from);
+    const resumeAt = resyncResumeOffset(found, this.carry.length, atEof);
     this.accountResync(resumeAt - from);
     return resumeAt;
   }
@@ -208,21 +205,6 @@ export class Mp3FrameCounter {
       }
     }
     this.frameCount += 1;
-  }
-
-  /**
-   * Scan `carry` from `from + 1` for the next offset that parses as a valid
-   * header. Returns -1 when there is none within the bytes currently held. Pure:
-   * does not touch `carry` or any counters.
-   */
-  private findNextHeader(from: number): number {
-    const scanEnd = this.carry.length - HEADER_BYTES;
-    for (let offset = from + 1; offset <= scanEnd; offset += 1) {
-      if (this.carry[offset] === 0xff && parseFrameHeader(this.carry, offset).ok) {
-        return offset;
-      }
-    }
-    return -1;
   }
 
   private accountResync(bytes: number): void {

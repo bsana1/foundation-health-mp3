@@ -67,6 +67,31 @@ describe('countMp3Frames', () => {
       expect(await count(stream)).toBe(15);
     });
 
+    it('measures the tag even when the 10-byte header dribbles in one byte at a time', async () => {
+      // exercises skipId3's "fewer than ID3V2_MIN_BYTES buffered, wait" path
+      const stream = Buffer.concat([makeId3v2(40), makeFrames(12)]);
+      expect(await count(stream, { chunkSize: 1 })).toBe(12);
+    });
+
+    it('handles a chunk boundary that falls inside the ID3 size field', () => {
+      const tag = makeId3v2(60);
+      const counter = new Mp3FrameCounter();
+      counter.push(Buffer.from(tag.subarray(0, 8))); // mid-header, before the last size byte
+      counter.push(Buffer.concat([tag.subarray(8), makeFrames(8)]));
+      expect(counter.end().frameCount).toBe(8);
+    });
+
+    it('rejects input that is only a truncated ID3 header', async () => {
+      await expect(countMp3Frames(Buffer.from('ID3\x04\x00\x00'))).rejects.toBeInstanceOf(
+        NotAnMp3Error,
+      );
+    });
+
+    it('rejects an ID3 tag whose declared size exceeds the input', async () => {
+      const stream = Buffer.concat([makeId3v2(50_000), makeFrames(5)]).subarray(0, 400);
+      await expect(countMp3Frames(stream)).rejects.toBeInstanceOf(NotAnMp3Error);
+    });
+
     it('ignores a trailing ID3v1 tag', async () => {
       expect(await count(Buffer.concat([makeFrames(25), makeId3v1()]))).toBe(25);
     });

@@ -76,6 +76,16 @@ just in a doc. Known simplifications in this project:
   is tested by `test/mp3/foo.test.ts`.
 - Every exported unit — parsers, helpers, the counter, config loading — has its
   own direct test. A helper that isn't tested in isolation is a smell.
+- **Pure logic comes out of stateful classes and gets its own tests.** If a
+  method doesn't touch `this`, it's a function: put it in its own module, export
+  it, and test it directly against garbage inputs and boundaries (see
+  `frameResync.ts` — `findNextFrameHeader` / `resyncResumeOffset` lifted out of
+  `Mp3FrameCounter`). Stateful orchestration (`consume`, `skipId3`) stays private
+  and is covered **behaviourally** through the public API — those tests survive a
+  refactor of the internals, which method-level tests would not. Never reach into
+  a class with `(obj as any).privateMethod(...)`.
+- Modules exported only for tests are imported by direct path
+  (`../../src/mp3/frameHeader.js`), not added to the `index.ts` barrel.
 - The core parser is tested with **synthetic** MPEG streams built in
   `test/helpers/` — real, spec-shaped headers with zeroed bodies — so a test can
   assert an exact known frame count.

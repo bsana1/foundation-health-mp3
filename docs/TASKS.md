@@ -28,16 +28,21 @@ hardening, then release readiness.
 - [x] `src/mp3/id3.ts` — measure a leading ID3v2 tag (synchsafe size, optional
       footer). Real-data test: sample tag is 44 bytes, first real header decodes
       as documented.
-- [ ] `src/mp3/frameCounter.ts` — streaming state machine: `update(chunk)` /
-      `finish()`, carry-over buffer, O(1) memory
-- [ ] `src/mp3/vbrHeader.ts` — detect the Xing/Info/VBRI header frame and
-      exclude it from the count (this is what makes our number match `mediainfo`)
-- [ ] `src/mp3/index.ts` — `countMp3Frames(source)` public entry point
-- [ ] Typed error hierarchy: `NotAnMp3Error`, `UnsupportedMpegFormatError`,
-      `CorruptStreamError`
+- [x] `src/mp3/vbrHeader.ts` — detect the Xing/Info/VBRI header frame and
+      exclude it from the count (this is what makes our number match `mediainfo`).
+      (PR #5)
+- [x] `src/mp3/frameCounter.ts` — streaming state machine: `push(chunk)` /
+      `end()`, incremental ID3 skip, carry-over buffer, O(1) memory, bounded
+      resync
+- [x] `src/mp3/errors.ts` — `Mp3AnalysisError` + `NotAnMp3Error`,
+      `UnsupportedMpegFormatError`, `CorruptStreamError`
+- [x] `src/mp3/countMp3Frames.ts` + `src/mp3/index.ts` — `countMp3Frames(source)`
+      over a Buffer / chunk iterable / async stream; `index.ts` is the barrel
+- [x] Unit tests with synthetic frames (chosen counts, chunk-boundary fuzzing,
+      resync, lifecycle) — `frameCounter.test.ts`
+- [x] Integration test asserting `6089` against the provided sample —
+      `sample.test.ts`
 - [ ] Wire the counter into the route; drop the stub
-- [ ] Unit tests with synthetic frames (chosen counts, chunk-boundary fuzzing)
-- [ ] Integration test asserting `6089` against the provided sample
 - [ ] Optional: small CLI (`mp3-frames <file>`) reusing the core, for local
       verification against `mediainfo`
 
@@ -55,7 +60,9 @@ hardening, then release readiness.
 - [ ] Confirm constant memory on a multi-hundred-MB input (streamed, not buffered)
 - [ ] Load/perf test (autocannon or k6) against the sample; record throughput and
       RSS in `docs/`
-- [ ] Note any hot-path tuning (buffer reuse, avoiding `Buffer.concat` growth)
+- [ ] Hot-path tuning: the counter currently `Buffer.concat`s carry + chunk on
+      every `push`, which is O(n·chunks) for pathologically small chunks. Replace
+      with a ring/offset buffer if the perf test shows it matters.
 
 ## Milestone 4 — Release readiness
 

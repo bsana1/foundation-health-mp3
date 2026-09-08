@@ -8,25 +8,25 @@ Requirements and constraints are in `docs/requirements.md`.
 
 ## Current state
 
-Bootstrap only. The service runs, the endpoint accepts a `multipart/form-data`
-upload and streams the file bytes, and it returns the final response shape
-`{ "frameCount": <n> }` with a **stubbed value of `0`**. The MPEG parser is
-Milestone 1 in `docs/TASKS.md`.
+The MP3 core is built and returns the right count for the sample (6089). The
+HTTP route is **not yet wired to it** — `POST /file-upload` still returns a
+stubbed `0` until that PR lands. See `docs/TASKS.md`.
 
 ## Shape of the system
 
 Two layers, kept deliberately separate:
 
 ```
-HTTP layer (src/http/)          Core (src/mp3/, not yet built)
---------------------            ------------------------------
-app.ts      build the Fastify   index.ts        countMp3Frames(source)
-            instance, register  frameCounter    streaming state machine
-            @fastify/multipart  frameHeader     parse one 4-byte header
-routes/     accept the upload,  id3             measure a leading ID3v2 tag
-fileUpload  stream it into the  vbrHeader       spot the Xing/Info metadata frame
-            core, shape the     errors          typed error hierarchy
-            response            frameHeaderConsts  tables and magic numbers
+HTTP layer (src/http/)          Core (src/mp3/)
+--------------------            ---------------
+app.ts      build the Fastify   index.ts        barrel: public re-exports
+            instance, register  countMp3Frames  drive the counter over a stream/buffer
+            @fastify/multipart  frameCounter    streaming state machine (push / end)
+routes/     accept the upload,  frameHeader     parse + validate one 4-byte header
+fileUpload  stream it into the  id3             measure a leading ID3v2 tag
+            core, shape the     vbrHeader       spot the Xing/Info/VBRI metadata frame
+            response            errors          typed error hierarchy
+                                *Consts.ts      tables, offsets, magic numbers
 ```
 
 `src/config.ts` reads configuration from the environment once at startup.

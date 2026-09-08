@@ -9,7 +9,10 @@ services:
     name: foundation-health-mp3
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build
+    # --include=dev: the build needs typescript / @types/node, which are
+    # devDependencies, and NODE_ENV=production would otherwise skip them.
+    # prune afterwards so the running container carries only runtime deps.
+    buildCommand: npm ci --include=dev && npm run build && npm prune --omit=dev
     startCommand: npm start
     healthCheckPath: /health
     envVars:

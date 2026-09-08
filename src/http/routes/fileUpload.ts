@@ -1,8 +1,8 @@
 /**
  * POST /file-upload
  *
- * Accepts one MP3 file as `multipart/form-data` and responds with the number of
- * MPEG-1 Layer III audio frames in it:
+ * Accepts exactly one MP3 file as `multipart/form-data` and responds with the
+ * number of MPEG-1 Layer III audio frames in it:
  *
  *   200  { "frameCount": 6089 }
  *
@@ -11,12 +11,12 @@
  * `docs/api-contract.md`):
  *
  *   400 NO_FILE                 no file part in the request
+ *   400 TOO_MANY_FILES          more than one file part
  *   413 FILE_TOO_LARGE          upload exceeds MAX_UPLOAD_BYTES
  *   415 UNSUPPORTED_MEDIA_TYPE  request is not multipart/form-data
  *   422 NOT_AN_MP3 | UNSUPPORTED_MPEG_FORMAT | CORRUPT_STREAM
  */
 
-import type { MultipartFile } from '@fastify/multipart';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 import { countMp3Frames, Mp3AnalysisError } from '../../mp3/index.js';
@@ -58,36 +58,31 @@ async function handleFileUpload(request: FastifyRequest, reply: FastifyReply): P
     return;
   }
 
-  let upload: MultipartFile | undefined;
-  try {
-    upload = await request.file();
-  } catch (error) {
-    if (isFileTooLarge(error)) {
-      reply.status(413).send(tooLargeBody());
-      return;
-    }
-    throw error;
-  }
-
-  if (upload === undefined) {
-    reply.status(400).send(errorBody('NO_FILE', 'No file part was found in the multipart request'));
-    return;
-  }
+  let frameCount: number | undefined;
 
   try {
-    const result = await countMp3Frames(upload.file);
+    for await (const part of request.parts()) {
+      if (part.type !== 'file') continue;
 
-    if (upload.file.truncated) {
-      // Reached when @fastify/multipart is configured not to throw on the limit.
-      reply.status(413).send(tooLargeBody());
-      return;
+      if (frameCount !== undefined) {
+        // A second file part — the request is ambiguous. Remaining parts are
+        // drained by @fastify/multipart once the response is sent.
+        reply.status(400).send(errorBody('TOO_MANY_FILES', 'Send exactly one MP3 file'));
+        return;
+      }
+
+      const result = await countMp3Frames(part.file);
+      if (part.file.truncated) {
+        reply.status(413).send(tooLargeBody());
+        return;
+      }
+
+      request.log.info(
+        { frameCount: result.frameCount, durationSeconds: result.durationSeconds },
+        'counted mp3 frames',
+      );
+      frameCount = result.frameCount;
     }
-
-    request.log.info(
-      { frameCount: result.frameCount, durationSeconds: result.durationSeconds },
-      'counted mp3 frames',
-    );
-    reply.send({ frameCount: result.frameCount });
   } catch (error) {
     if (error instanceof Mp3AnalysisError) {
       reply.status(422).send(errorBody(error.code, error.message));
@@ -99,6 +94,13 @@ async function handleFileUpload(request: FastifyRequest, reply: FastifyReply): P
     }
     throw error; // unexpected — the app-level error handler turns it into a 500
   }
+
+  if (frameCount === undefined) {
+    reply.status(400).send(errorBody('NO_FILE', 'No file part was found in the multipart request'));
+    return;
+  }
+
+  reply.send({ frameCount });
 }
 
 function tooLargeBody(): ReturnType<typeof errorBody> {

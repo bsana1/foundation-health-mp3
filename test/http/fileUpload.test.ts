@@ -43,6 +43,22 @@ function fieldOnly(): { payload: Buffer; headers: Record<string, string> } {
   };
 }
 
+function twoFiles(a: Buffer, b: Buffer): { payload: Buffer; headers: Record<string, string> } {
+  const part = (name: string, bytes: Buffer): Buffer =>
+    Buffer.concat([
+      Buffer.from(
+        `--${BOUNDARY}\r\nContent-Disposition: form-data; name="${name}"; filename="${name}.mp3"\r\n` +
+          `Content-Type: audio/mpeg\r\n\r\n`,
+      ),
+      bytes,
+      Buffer.from('\r\n'),
+    ]);
+  return {
+    payload: Buffer.concat([part('one', a), part('two', b), Buffer.from(`--${BOUNDARY}--\r\n`)]),
+    headers: { 'content-type': `multipart/form-data; boundary=${BOUNDARY}` },
+  };
+}
+
 function mpeg2Fixture(): Buffer {
   return readFileSync(
     fileURLToPath(new URL('../fixtures/corpus/generated/mpeg2-lsf-22050.mp3', import.meta.url)),
@@ -98,6 +114,14 @@ describe('POST /file-upload', () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json()).toMatchObject({ error: { code: 'NO_FILE' } });
+  });
+
+  it('400 TOO_MANY_FILES when the request has more than one file part', async () => {
+    const { payload, headers } = twoFiles(makeFrames(30), makeFrames(30));
+    const response = await app.inject({ method: 'POST', url: '/file-upload', payload, headers });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({ error: { code: 'TOO_MANY_FILES' } });
   });
 
   it('422 NOT_AN_MP3 for a non-MPEG upload', async () => {

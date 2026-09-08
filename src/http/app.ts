@@ -12,27 +12,26 @@ import { Mp3AnalysisError } from '../mp3/index.js';
 import { errorBody } from './errorResponse.js';
 import { registerFileUploadRoute } from './routes/fileUpload.js';
 
-/** Known Fastify framework error codes → the status and code we surface. */
+/** Fastify framework error codes we translate to our own shape. */
 const FRAMEWORK_ERRORS: Record<string, { status: number; code: string }> = {
   FST_ERR_CTP_INVALID_MEDIA_TYPE: { status: 415, code: 'UNSUPPORTED_MEDIA_TYPE' },
   FST_ERR_CTP_EMPTY_TYPE: { status: 415, code: 'UNSUPPORTED_MEDIA_TYPE' },
   FST_REQ_FILE_TOO_LARGE: { status: 413, code: 'FILE_TOO_LARGE' },
-  FST_FILES_LIMIT: { status: 400, code: 'TOO_MANY_FILES' },
-  FST_PARTS_LIMIT: { status: 400, code: 'TOO_MANY_PARTS' },
 };
 
 export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
   const app = Fastify({
     logger: { level: config.logLevel },
-    // The body is always a stream, never JSON; keep the default parser's limit low.
+    // The upload body is consumed as a stream by @fastify/multipart; this only
+    // caps the default JSON parser used by other routes.
     bodyLimit: 1024,
   });
 
   await app.register(multipart, {
-    limits: {
-      files: 1,
-      fileSize: config.maxUploadBytes,
-    },
+    // One file per request is enforced in the route (it rejects a second file
+    // part), not here — a hard `files: 1` limit would make busboy throw before
+    // the route can send a clear TOO_MANY_FILES response.
+    limits: { fileSize: config.maxUploadBytes },
   });
 
   app.setErrorHandler((error: FastifyError, request, reply) => {

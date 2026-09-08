@@ -8,8 +8,9 @@ Counts the MPEG-1 Layer III audio frames in an uploaded MP3.
 
 - Method: `POST`
 - Content-Type: `multipart/form-data`
-- Body: one file part. The field name is not significant; the first file part is
-  used. Filename/extension is ignored — detection is by content.
+- Body: **exactly one file part**. The field name is not significant. Non-file
+  fields are ignored; a second file part is rejected (`400 TOO_MANY_FILES`).
+  Filename/extension is ignored — detection is by content.
 
 ```bash
 curl -sS -X POST http://localhost:3000/file-upload \

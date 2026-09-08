@@ -2,6 +2,26 @@
 
 Newest first. Each entry: the decision, why, and what was rejected.
 
+## 2026-09-08 — One error-response shape; app-level handler for the unexpected
+
+Every failure returns `{ "error": { "code", "message" } }` — a stable `code` for
+programmatic handling, a `message` for humans. The route maps the expected cases
+directly (analysis errors → 422, no file → 400, oversize → 413, wrong
+content-type → 415). Anything else propagates to an `app.setErrorHandler` that
+reshapes known framework errors, and turns genuinely unexpected errors into
+`500 { code: "INTERNAL" }` with the real error logged server-side, never
+returned. Rejected: letting Fastify's default `{ statusCode, error, message }`
+shape through — inconsistent with our body, and its 500s echo the message.
+
+## 2026-09-08 — Reject a second file part rather than pick one
+
+The route iterates `request.parts()` and returns `400 TOO_MANY_FILES` if a
+second file part appears — a frame-counting API shouldn't silently choose one of
+two uploads and leave the caller unsure which count they got. Non-file fields
+are ignored. Rejected: `request.file()` (only ever reads the first part, so
+extra files pass unnoticed) and a hard `limits.files: 1` (busboy throws before
+the route can send a clear message).
+
 ## 2026-09-08 — `ffprobe -count_frames` is the verification oracle, not `mediainfo`
 
 Built a committed corpus (`test/fixtures/corpus/`, 20 files) to check

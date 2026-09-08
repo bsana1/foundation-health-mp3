@@ -47,18 +47,25 @@ hardening, then release readiness.
       (`corpus.test.ts`) and against the live tools (`npm run corpus:verify`).
       `countMp3Frames` matches `ffprobe` on every countable file. See
       `docs/verifying-frame-counts.md`.
-- [ ] Wire the counter into the route; drop the stub
+- [x] Wire the counter into the route; drop the stub — `countMp3Frames(upload.file)`
+      streamed straight in; endpoint returns `{ "frameCount": 6089 }` for the
+      sample
 - [ ] Optional: small CLI (`mp3-frames <file>`) reusing the core, for local
       verification against `mediainfo`
 
 ## Milestone 2 — Error handling & edges
 
-- [ ] Map analysis errors to HTTP status + `{ error: { code, message } }` body
-- [ ] `413` when the upload exceeds `MAX_UPLOAD_BYTES`
-- [ ] `400` on no file part; `415` on non-multipart
-- [ ] Early-abort: reject a non-MPEG-1-L3 first frame without reading the rest
-- [ ] Decide + document truncated-final-frame behaviour
-- [ ] Fastify error handler so nothing leaks a stack trace to the client
+- [x] Map analysis errors to HTTP status + `{ error: { code, message } }` body —
+      `src/http/errorResponse.ts`, 422 for `NOT_AN_MP3` /
+      `UNSUPPORTED_MPEG_FORMAT` / `CORRUPT_STREAM`
+- [x] `413` when the upload exceeds `MAX_UPLOAD_BYTES`
+- [x] `400` on no file part; `415` on non-multipart; `400 TOO_MANY_FILES`
+- [x] Early-abort: a wrong-format first frame throws before the rest of the
+      upload is parsed (`@fastify/multipart` drains the unread part)
+- [x] Truncated-final-frame behaviour decided + documented
+      (`docs/mp3-frame-structure.md` §10, `.agent/DECISIONS.md`)
+- [x] App-level error handler — unexpected errors become `500 INTERNAL` with the
+      real cause logged, not returned (`src/http/app.ts`)
 
 ## Milestone 3 — Scalability & perf
 

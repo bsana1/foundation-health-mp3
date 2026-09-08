@@ -1,12 +1,11 @@
 # MP3 File Analysis App
 
 An HTTP service that accepts an MP3 upload and returns the number of MPEG-1 Audio
-Layer III frames in it.
+Layer III audio frames in it. The upload is streamed through a hand-written frame
+parser — never buffered whole — so memory does not grow with file size.
 
-> **Status: bootstrap.** The service runs and the `POST /file-upload` endpoint
-> accepts an MP3 and responds with the final JSON shape, but `frameCount` is
-> currently a stub `0`. The frame parser is the next milestone — see
-> [`docs/TASKS.md`](docs/TASKS.md).
+Remaining work is tracked in [`docs/TASKS.md`](docs/TASKS.md) (a load-test pass
+and release polish).
 
 ## Prerequisites
 
@@ -30,18 +29,34 @@ npm start
 ## Try it
 
 ```bash
-# health
 curl -sS http://localhost:3000/health
 # => {"status":"ok"}
 
-# frame count (stub value for now)
 curl -sS -X POST http://localhost:3000/file-upload \
   -F "file=@test/fixtures/foundationhealth-sample-mp3.mp3"
-# => {"frameCount":0}
+# => {"frameCount":6089}
 ```
 
-The provided sample's real frame count is **6089** (verified with `mediainfo`
-and `ffprobe`); the endpoint will return that once the parser lands.
+`6089` is the count `mediainfo` and `ffprobe -count_frames` report for the
+provided sample. How that number is defined, and a whole corpus it is checked
+against, is in [`docs/verifying-frame-counts.md`](docs/verifying-frame-counts.md).
+
+### Errors
+
+Every failure returns `{ "error": { "code": "...", "message": "..." } }`:
+
+```bash
+curl -sS -i -X POST http://localhost:3000/file-upload -F "file=@README.md"
+# => 422  {"error":{"code":"NOT_AN_MP3","message":"..."}}
+```
+
+| Status | `code`                                                      | When                                                  |
+| ------ | ----------------------------------------------------------- | ----------------------------------------------------- |
+| 400    | `NO_FILE`                                                   | no file part in the request                           |
+| 400    | `TOO_MANY_FILES`                                            | more than one file part                               |
+| 413    | `FILE_TOO_LARGE`                                            | upload exceeds `MAX_UPLOAD_BYTES`                     |
+| 415    | `UNSUPPORTED_MEDIA_TYPE`                                    | request is not `multipart/form-data`                  |
+| 422    | `NOT_AN_MP3` / `UNSUPPORTED_MPEG_FORMAT` / `CORRUPT_STREAM` | the bytes are not a countable MPEG-1 Layer III stream |
 
 ## Tests and checks
 
@@ -90,16 +105,23 @@ src/
   config.ts               env-driven configuration
   index.ts                process entry point (listen, signals)
   http/
-    app.ts                buildApp() — Fastify instance, testable
-    routes/
-      fileUpload.ts        POST /file-upload  (stub until the parser is wired in)
-  mp3/
-    frameHeader.ts         parse + validate one 4-byte frame header
-    frameHeaderConsts.ts   lookup tables and magic numbers
-    ...                     more of the parser lands over Milestone 1
+    app.ts                buildApp() — Fastify instance + error handler
+    errorResponse.ts      the { error: { code, message } } shape
+    routes/fileUpload.ts  POST /file-upload
+  mp3/                    the parser (no HTTP knowledge)
+    index.ts              public barrel
+    countMp3Frames.ts     entry point — drives the counter over a stream/buffer
+    frameCounter.ts       streaming state machine (push / end)
+    frameHeader.ts        parse + validate one 4-byte header
+    id3.ts                measure a leading ID3v2 tag
+    vbrHeader.ts          detect the Xing/Info/VBRI metadata frame
+    frameResync.ts        recover position after malformed bytes
+    errors.ts             typed error hierarchy
+    *Consts.ts            tables, offsets, magic numbers
 test/
-  fixtures/               the provided sample MP3
-  helpers/                synthetic MP3 builders for tests
-  http/                   endpoint smoke tests (one route per file)
-  mp3/                    parser unit tests
+  fixtures/               the provided sample + the verification corpus
+  helpers/                synthetic MP3 builders, the sample loader
+  http/                   endpoint tests (one route per file)
+  mp3/                    parser unit + corpus tests
+scripts/                  corpus generation and cross-tool verification
 ```

@@ -1,9 +1,5 @@
 # API contract
 
-> Status: bootstrap. `POST /file-upload` returns the shape below with a **stub
-> `frameCount` of `0`**. The values and the full error table are the target once
-> the parser lands (see `docs/TASKS.md`).
-
 ## `POST /file-upload`
 
 Counts the MPEG-1 Layer III audio frames in an uploaded MP3.
@@ -12,8 +8,9 @@ Counts the MPEG-1 Layer III audio frames in an uploaded MP3.
 
 - Method: `POST`
 - Content-Type: `multipart/form-data`
-- Body: one file part. The field name is not significant; the first file part is
-  used. Filename/extension is ignored — detection is by content.
+- Body: **exactly one file part**. The field name is not significant. Non-file
+  fields are ignored; a second file part is rejected (`400 TOO_MANY_FILES`).
+  Filename/extension is ignored — detection is by content.
 
 ```bash
 curl -sS -X POST http://localhost:3000/file-upload \
@@ -32,21 +29,24 @@ curl -sS -X POST http://localhost:3000/file-upload \
 Xing/Info/VBRI metadata frame is not included — see
 `docs/mp3-frame-structure.md`.
 
-### Errors (target)
+### Errors
 
-One shape for all: `{ "error": { "code": "...", "message": "..." } }`
+One shape for all, `Content-Type: application/json`:
+
+```json
+{ "error": { "code": "NOT_AN_MP3", "message": "human-readable text" } }
+```
 
 | Status | `code`                    | When                                                         |
 | ------ | ------------------------- | ------------------------------------------------------------ |
 | 400    | `NO_FILE`                 | multipart request with no file part                          |
+| 400    | `TOO_MANY_FILES`          | more than one file part                                      |
 | 413    | `FILE_TOO_LARGE`          | upload exceeds `MAX_UPLOAD_BYTES`                            |
 | 415    | `UNSUPPORTED_MEDIA_TYPE`  | request is not `multipart/form-data`                         |
 | 422    | `NOT_AN_MP3`              | no MPEG frame sync at the start of the stream                |
 | 422    | `UNSUPPORTED_MPEG_FORMAT` | first frame is valid MPEG audio but not MPEG-1 Layer III     |
 | 422    | `CORRUPT_STREAM`          | parsing started, then hit an unrecoverable run of junk bytes |
-
-Currently implemented: `200` with stub count; `415` for non-multipart (Fastify);
-`400` for a missing file part.
+| 500    | `INTERNAL`                | unexpected error; the real cause is logged, not returned     |
 
 ## `GET /health`
 

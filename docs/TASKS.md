@@ -1,8 +1,8 @@
 # Plan & task list
 
-Working log of what's done and what's left. Checked items are in `main`.
-Order: a running service first, then correct frame counting, then hardening,
-then submission.
+The working log the build followed, milestone by milestone. All items are done
+and in `main`. Order was: a running service first, then correct frame counting,
+then hardening, then submission.
 
 ## Milestone 0 — Bootstrap (done)
 
@@ -85,10 +85,12 @@ then submission.
 Scoped to what the assignment asks: a git repo with clear run instructions and
 an example of how to test.
 
-- [ ] README final read-through: run instructions, how to test, API contract,
-      a short "with more time" note
-- [ ] Final pass: `npm run check` clean, CI green, sample returns `6089`
-- [ ] Git history reads as a deliberate progression
+- [x] README final read-through — run instructions, curl examples, error table,
+      deploy, a "with more time" note; stale status notes swept from the docs
+- [x] Final pass: `npm run check` clean (113 tests), `npm run build` compiles,
+      `npm run corpus:verify` all good, compiled build returns `6089` for the sample
+- [x] Git history: one squash commit per PR from `#3` on (`#1`/`#2` predate the
+      squash-only setting and are left as-is)
 
 ## Resolved decisions
 

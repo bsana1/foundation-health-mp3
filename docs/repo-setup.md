@@ -1,8 +1,13 @@
 # One-time repository configuration
 
 Settings that live on GitHub, not in the repo. Run once after creating the
-remote (or reproduce them if the repo is recreated). Requires the `gh` CLI,
-authenticated, and admin on the repo. Replace `OWNER/REPO`.
+remote (or reproduce them if the repo is recreated). Requires the `gh` CLI (or
+the equivalent REST calls), authenticated, and admin on the repo. Replace
+`OWNER/REPO`.
+
+Status: the **merge-method settings are applied** (squash-only, delete branch on
+merge, commit message from the PR). The **`main` ruleset below is optional** and
+not applied — every PR already goes through CI and a squash merge by convention.
 
 ## Merge methods — squash only
 

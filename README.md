@@ -54,18 +54,24 @@ curl -sS -i -X POST http://localhost:3000/file-upload -F "file=@README.md"
 | ------ | ----------------------------------------------------------- | ----------------------------------------------------- |
 | 400    | `NO_FILE`                                                   | no file part in the request                           |
 | 400    | `TOO_MANY_FILES`                                            | more than one file part                               |
+| 404    | `NOT_FOUND`                                                 | unknown route or wrong method                         |
 | 413    | `FILE_TOO_LARGE`                                            | upload exceeds `MAX_UPLOAD_BYTES`                     |
 | 415    | `UNSUPPORTED_MEDIA_TYPE`                                    | request is not `multipart/form-data`                  |
 | 422    | `NOT_AN_MP3` / `UNSUPPORTED_MPEG_FORMAT` / `CORRUPT_STREAM` | the bytes are not a countable MPEG-1 Layer III stream |
-| 404    | `NOT_FOUND`                                                 | unknown route or wrong method                         |
 
 ## Tests and checks
 
 ```bash
-npm test             # vitest
-npm run typecheck    # tsc --noEmit
-npm run lint         # eslint
+npm test             # vitest — 113 tests
 npm run check        # format check + lint + typecheck + test (what CI runs)
+```
+
+With `ffmpeg` / `mediainfo` on `PATH` you can also cross-check the counter
+against the reference tools and profile its memory:
+
+```bash
+npm run corpus:verify           # our count vs ffprobe / mediainfo, 20 files
+npm run perf:memory -- 2 --http # stream 2 GB through the endpoint, report RSS
 ```
 
 ## Deploy
@@ -74,10 +80,9 @@ The service is 12-factor: it reads `PORT` / `HOST` from the environment, logs to
 stdout, and touches no local files at runtime. Any Node host works.
 
 [`render.yaml`](render.yaml) is a ready blueprint for [Render](https://render.com)'s
-free tier — in the dashboard, **New → Blueprint → connect this repo**. It builds
-with `npm ci && npm run build`, starts with `npm start`, health-checks `/health`,
-and sets `MAX_UPLOAD_BYTES` to 25 MiB (under the platform's request cap). Every
-push to `main` redeploys.
+free tier — in the dashboard, **New → Blueprint → connect this repo**. It builds,
+starts with `npm start`, health-checks `/health`, caps uploads at 25 MiB (under
+the platform's request limit), and redeploys on every push to `main`.
 
 ## Configuration
 

@@ -2,11 +2,9 @@
 
 The working reference for the parser in `src/mp3/`. It covers exactly what this
 service needs: enough of the MPEG-1 Audio Layer III bitstream to walk from one
-frame to the next and count them. It is not a complete MPEG spec.
-
-> Status: `src/mp3/` is Milestone 1 (`docs/TASKS.md`). This document is the
-> design it is built against. The byte-level facts and the reference count
-> (6089) are already verified against the provided sample.
+frame to the next and count them. It is not a complete MPEG spec. Every
+byte-level fact here is verified against the provided sample and the corpus in
+`docs/verifying-frame-counts.md`.
 
 ---
 

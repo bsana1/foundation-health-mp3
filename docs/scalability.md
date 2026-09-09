@@ -34,7 +34,7 @@ Feeding synthetic frames as 64 KiB chunks (Node 26, M-series Mac,
 | `countMp3Frames` directly            | 4 GB     |       **+0 MB** | ~4400 MB/s |
 | `POST /file-upload` (full HTTP path) | 2 GB     |       **+0 MB** | ~2800 MB/s |
 
-RSS baseline ~93 MB (Node + Fastify); it does not move as gigabytes flow
+RSS baseline ~80 MB (Node + Fastify); it does not move as gigabytes flow
 through. `test/mp3/memory.test.ts` is the CI guard — it streams ~150 MB and
 asserts heap growth stays under 20 MB.
 

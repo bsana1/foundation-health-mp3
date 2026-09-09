@@ -7,6 +7,9 @@ frame parser — never buffered whole — so memory does not grow with file size
 `POST /file-upload` with the provided sample returns `{ "frameCount": 6089 }`,
 the value `ffprobe -count_frames` and `mediainfo` report.
 
+A live instance runs at **<https://foundation-health-mp3.onrender.com>** (Render
+free tier — the first request after a while may take ~50 s to wake).
+
 ## Prerequisites
 
 - Node.js ≥ 20
@@ -28,11 +31,14 @@ npm start
 
 ## Try it
 
+Against the live instance (or swap the host for `http://localhost:3000` after
+`npm run dev`):
+
 ```bash
-curl -sS http://localhost:3000/health
+curl -sS https://foundation-health-mp3.onrender.com/health
 # => {"status":"ok"}
 
-curl -sS -X POST http://localhost:3000/file-upload \
+curl -sS -X POST https://foundation-health-mp3.onrender.com/file-upload \
   -F "file=@test/fixtures/foundationhealth-sample-mp3.mp3"
 # => {"frameCount":6089}
 ```
@@ -79,10 +85,11 @@ npm run perf:memory -- 2 --http # stream 2 GB through the endpoint, report RSS
 The service is 12-factor: it reads `PORT` / `HOST` from the environment, logs to
 stdout, and touches no local files at runtime. Any Node host works.
 
-[`render.yaml`](render.yaml) is a ready blueprint for [Render](https://render.com)'s
-free tier — in the dashboard, **New → Blueprint → connect this repo**. It builds,
-starts with `npm start`, health-checks `/health`, caps uploads at 25 MiB (under
-the platform's request limit), and redeploys on every push to `main`.
+[`render.yaml`](render.yaml) is the blueprint for the live instance on
+[Render](https://render.com)'s free tier — **New → Blueprint → connect this
+repo** in the dashboard. It builds, starts with `npm start`, health-checks
+`/health`, caps uploads at 25 MiB (under the platform's request limit), and
+redeploys on every push to `main`.
 
 ## Configuration
 

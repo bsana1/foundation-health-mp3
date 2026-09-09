@@ -46,6 +46,7 @@ One shape for all, `Content-Type: application/json`:
 | 422    | `NOT_AN_MP3`              | no MPEG frame sync at the start of the stream                |
 | 422    | `UNSUPPORTED_MPEG_FORMAT` | first frame is valid MPEG audio but not MPEG-1 Layer III     |
 | 422    | `CORRUPT_STREAM`          | parsing started, then hit an unrecoverable run of junk bytes |
+| 404    | `NOT_FOUND`               | unknown route, or wrong method for a known one               |
 | 500    | `INTERNAL`                | unexpected error; the real cause is logged, not returned     |
 
 ## `GET /health`

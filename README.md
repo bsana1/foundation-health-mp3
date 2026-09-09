@@ -57,6 +57,7 @@ curl -sS -i -X POST http://localhost:3000/file-upload -F "file=@README.md"
 | 413    | `FILE_TOO_LARGE`                                            | upload exceeds `MAX_UPLOAD_BYTES`                     |
 | 415    | `UNSUPPORTED_MEDIA_TYPE`                                    | request is not `multipart/form-data`                  |
 | 422    | `NOT_AN_MP3` / `UNSUPPORTED_MPEG_FORMAT` / `CORRUPT_STREAM` | the bytes are not a countable MPEG-1 Layer III stream |
+| 404    | `NOT_FOUND`                                                 | unknown route or wrong method                         |
 
 ## Tests and checks
 

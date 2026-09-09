@@ -261,19 +261,20 @@ or a 1 GiB upload.
 
 ## 10. Edge cases the walker handles
 
-| Situation                                | Behaviour                                           |
-| ---------------------------------------- | --------------------------------------------------- |
-| Leading ID3v2 tag                        | measured from its synchsafe size field and skipped  |
-| Trailing ID3v1 / APE / arbitrary bytes   | not a valid frame → walk stops, bytes uncounted     |
-| Padding bit set                          | `+1` byte added to that frame's length              |
-| VBR (bitrate changes frame to frame)     | each frame measured from its own header             |
-| Xing/Info/VBRI first frame               | stepped over, not counted; `hasVbrHeaderFrame` set  |
-| Garbage between frames (bit rot, splice) | resync: scan forward for the next valid header      |
-| Garbage run > `maxResyncBytes`           | stop with `CORRUPT_STREAM` rather than scan forever |
-| Final frame truncated by a few bytes     | counted once (its header is valid)                  |
-| First frame not MPEG-1 Layer III         | `UNSUPPORTED_MPEG_FORMAT` (out of scope)            |
-| Free-format bitrate (index 0)            | rejected — out of scope                             |
-| No frame sync near the start             | `NOT_AN_MP3`                                        |
+| Situation                                | Behaviour                                                      |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| Leading ID3v2 tag                        | measured from its synchsafe size field and skipped             |
+| Trailing ID3v1 / APE / arbitrary bytes   | not a valid frame → walk stops, bytes uncounted                |
+| Padding bit set                          | `+1` byte added to that frame's length                         |
+| VBR (bitrate changes frame to frame)     | each frame measured from its own header                        |
+| Xing/Info/VBRI first frame               | stepped over, not counted; `hasVbrHeaderFrame` set             |
+| Garbage between frames (bit rot, splice) | resync: scan forward for the next valid header                 |
+| Garbage run > `maxResyncBytes`           | stop with `CORRUPT_STREAM` rather than scan forever            |
+| Final frame truncated by a few bytes     | counted once (its header is valid)                             |
+| First frame itself truncated             | not counted — can't tell it from a metadata frame; result is 0 |
+| First frame not MPEG-1 Layer III         | `UNSUPPORTED_MPEG_FORMAT` (out of scope)                       |
+| Free-format bitrate (index 0)            | rejected — out of scope                                        |
+| No frame sync near the start             | `NOT_AN_MP3`                                                   |
 
 ---
 

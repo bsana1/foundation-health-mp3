@@ -139,6 +139,12 @@ describe('countMp3Frames', () => {
       expect(await count(full.subarray(0, full.length - 40))).toBe(10);
     });
 
+    it('does not count a truncated first frame — zero complete audio frames', async () => {
+      const oneFrame = makeFrame({ bitrateKbps: 128 });
+      const result = await countMp3Frames(oneFrame.subarray(0, 60)); // header valid, body cut off
+      expect(result.frameCount).toBe(0);
+    });
+
     it('rejects input that is not MPEG audio', async () => {
       await expect(countMp3Frames(Buffer.alloc(8192, 0x42))).rejects.toBeInstanceOf(NotAnMp3Error);
     });

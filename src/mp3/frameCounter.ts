@@ -152,7 +152,7 @@ export class Mp3FrameCounter {
     if (this.sawValidHeader) return;
     throw WRONG_FORMAT_ERRORS.has(error)
       ? new UnsupportedMpegFormatError(
-          `First frame is valid MPEG audio but not MPEG-1 Layer III (${error})`,
+          'The first frame is valid MPEG audio but not the supported MPEG Version 1, Layer III',
         )
       : new NotAnMp3Error('Stream does not start with an MPEG-1 Layer III frame header');
   }
@@ -199,7 +199,10 @@ export class Mp3FrameCounter {
   private countFrame(header: FrameHeader, frameStart: number, wholeFrameBuffered: boolean): void {
     if (!this.firstFrameChecked) {
       this.firstFrameChecked = true;
-      if (wholeFrameBuffered && isVbrHeaderFrame(this.carry, frameStart, header)) {
+      // A truncated first frame can't be told apart from a metadata frame, so
+      // it is not counted — the file has zero complete audio frames.
+      if (!wholeFrameBuffered) return;
+      if (isVbrHeaderFrame(this.carry, frameStart, header)) {
         this.hasVbrHeaderFrame = true;
         return;
       }

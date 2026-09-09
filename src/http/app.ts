@@ -57,6 +57,12 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
     reply.status(status).send(errorBody('BAD_REQUEST', error.message));
   });
 
+  app.setNotFoundHandler((request, reply) => {
+    reply
+      .status(404)
+      .send(errorBody('NOT_FOUND', `Route ${request.method}:${request.url} not found`));
+  });
+
   app.get('/health', () => ({ status: 'ok' }));
 
   registerFileUploadRoute(app);
